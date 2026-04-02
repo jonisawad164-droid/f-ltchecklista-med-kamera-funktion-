@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Fältchecklista">
+<title>Fältchecklista – Energieffektivisering</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f4f6f9;color:#1a1a1a;padding-bottom:90px}
+.header{background:#1e4a7a;color:#fff;padding:16px;position:sticky;top:0;z-index:100}
+.header h1{font-size:17px;font-weight:600;margin-bottom:2px}
+.header p{font-size:12px;color:#a8c8e0}
+.prog-bar{height:4px;background:rgba(255,255,255,0.2);margin-top:10px;border-radius:2px;overflow:hidden}
+.prog-fill{height:100%;background:#4fc3a1;border-radius:2px;transition:width 0.3s}
+.prog-label{font-size:11px;color:#a8c8e0;margin-top:4px}
+.meta-wrap{padding:12px}
+.meta-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.meta-grid input,.meta-grid select,.meta-full{width:100%;padding:10px 12px;font-size:15px;border:1px solid #ddd;border-radius:10px;background:#fff;color:#1a1a1a;-webkit-appearance:none;appearance:none}
+.meta-full{grid-column:1/-1}
+select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23666' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px}
+.section{background:#fff;margin:8px 12px;border-radius:14px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.08)}
+.sec-hdr{background:#1e4a7a;color:#fff;padding:12px 16px;font-size:14px;font-weight:600;display:flex;justify-content:space-between;align-items:center;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.sec-hdr .arr{font-size:12px;transition:transform 0.2s;display:inline-block}
+.sec-hdr.open .arr{transform:rotate(180deg)}
+.sec-body{display:none;padding:0 16px}
+.sec-body.open{display:block}
+.check-item{display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid #f0f0f0}
+.check-item:last-child{border-bottom:none}
+.check-item input[type=checkbox]{width:22px;height:22px;flex-shrink:0;margin-top:1px;cursor:pointer;accent-color:#1e4a7a;border-radius:6px}
+.check-item label{font-size:14px;line-height:1.5;cursor:pointer;flex:1}
+.foto-tag{font-size:12px;font-weight:700;color:#1a5c8a;display:block;margin-bottom:2px}
+.mrow{display:flex;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid #f0f0f0}
+.mrow:last-child{border-bottom:none}
+.mrow label{font-size:13px;color:#555;flex:1;line-height:1.4}
+.mrow input[type=text]{width:80px;padding:8px;font-size:15px;text-align:center;border:1px solid #ddd;border-radius:8px;background:#fff;color:#1a1a1a;-webkit-appearance:none}
+.mrow .unit{font-size:13px;color:#888;min-width:28px}
+.jnrow{display:flex;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid #f0f0f0}
+.jnrow:last-child{border-bottom:none}
+.jnrow label{font-size:14px;color:#1a1a1a;flex:1;line-height:1.4}
+.jnbtns{display:flex;gap:6px;flex-shrink:0}
+.jnbtn{padding:7px 14px;font-size:13px;font-weight:600;border:1.5px solid #ddd;border-radius:8px;background:#fff;color:#555;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.jnbtn.ja{background:#d4edda;border-color:#28a745;color:#155724}
+.jnbtn.nej{background:#f8d7da;border-color:#dc3545;color:#721c24}
+.dt-row{padding:6px 0 8px;font-size:13px;color:#555}
+.dt-val{font-weight:700;font-size:15px}
+.dt-ok{color:#28a745}
+.dt-bad{color:#dc3545}
+.note{font-size:12px;color:#888;font-style:italic;padding:8px 0;line-height:1.5}
+.warn-box{background:#fff3f3;border-left:3px solid #dc3545;padding:8px 10px;margin:6px 0;border-radius:0 6px 6px 0;font-size:13px;color:#721c24;display:none}
+.info-box{background:#fff8e8;border-left:3px solid #e0a000;padding:8px 10px;margin:6px 0;border-radius:0 6px 6px 0;font-size:13px;color:#7d4e00}
+.orsak-wrap{display:flex;flex-wrap:wrap;gap:8px;padding:10px 0}
+.orsak-btn{padding:8px 14px;font-size:13px;border:1.5px solid #ddd;border-radius:20px;background:#fff;color:#555;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.orsak-btn.vald{background:#d0e4f5;border-color:#1e4a7a;color:#1e4a7a;font-weight:600}
+textarea{width:100%;padding:10px;font-size:14px;border:1px solid #ddd;border-radius:10px;background:#fff;color:#1a1a1a;resize:vertical;min-height:80px;font-family:inherit;margin-bottom:8px}
+.send-btn{width:calc(100% - 24px);margin:12px;padding:16px;background:#1e4a7a;color:#fff;border:none;border-radius:14px;font-size:16px;font-weight:700;cursor:pointer;display:block;-webkit-tap-highlight-color:transparent;letter-spacing:0.3px}
+.send-btn:active{background:#163d66}
+.foto-btn{display:inline-flex;align-items:center;gap:6px;margin-top:6px;padding:8px 14px;background:#1e4a7a;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.foto-btn:active{background:#163d66}
+.foto-btn.tagen{background:#28a745}
+.foto-preview{width:80px;height:80px;object-fit:cover;border-radius:8px;margin-top:8px;display:block;border:2px solid #28a745}
+.foto-wrap{padding:6px 0 10px 34px;border-bottom:1px solid #f0f0f0}
+.foto-wrap:last-child{border-bottom:none}
+.foto-counter{position:fixed;top:60px;right:12px;background:#1e4a7a;color:#fff;border-radius:20px;padding:4px 10px;font-size:12px;font-weight:700;z-index:200;display:none}
+input[type=file]{display:none}
+
+.bottom-bar{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #e0e0e0;padding:10px 16px;display:flex;gap:8px;z-index:99}
+.stat{text-align:center;flex:1}
+.stat-n{font-size:18px;font-weight:700;color:#1e4a7a}
+.stat-l{font-size:10px;color:#888;margin-top:1px}
+.sec-badge{background:rgba(255,255,255,0.2);border-radius:10px;padding:2px 8px;font-size:11px;font-weight:400}
+input:focus,select:focus,textarea:focus{outline:2px solid #1e4a7a;outline-offset:1px}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Fältchecklista – Energieffektivisering</h1>
+  <p>Fyll i på plats. Skicka via e-post när klar.</p>
+  <div class="prog-bar"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+  <div class="prog-label" id="prog-label">0 av 0 punkter klara</div>
+</div>
+
+<div class="meta-wrap">
+  <div class="meta-grid">
+    <input class="meta-full" type="text" id="m_adress" placeholder="Fastighet / adress" oninput="upd()">
+    <input type="text" id="m_ort" placeholder="Ort" oninput="upd()">
+    <input type="text" id="m_datum" placeholder="Datum (ÅÅÅÅ-MM-DD)" oninput="upd()">
+    <input type="text" id="m_tekniker" placeholder="Tekniker" oninput="upd()">
+    <input type="text" id="m_telefon" placeholder="Telefon" oninput="upd()">
+    <input type="text" id="m_lgh" placeholder="Antal lgh / yta m²" oninput="upd()">
+    <input type="text" id="m_ar" placeholder="Byggnadsår" oninput="upd()">
+    <input type="text" id="m_eklass" placeholder="Energiklass (t.ex. E)" oninput="upd()">
+    <select id="m_varme" class="meta-full" onchange="upd()">
+      <option value="">Värmesystem...</option>
+      <option>Fjärrvärme</option><option>Värmepump</option><option>Gas</option><option>El</option>
+    </select>
+    <select id="m_vent" class="meta-full" onchange="showVent()">
+      <option value="">Ventilationssystem...</option>
+      <option>FTX</option><option>FT</option><option>F</option><option>F med FVP</option><option>Självdrag</option>
+    </select>
+  </div>
+</div>
+
+<div id="radon-warn" class="warn-box" style="margin:0 12px 8px">
+  ⚠️ Radon: Kontrollera att radonutsugsflästkar körs. Notera radonhalt om känd.
+</div>
+
+<!-- S1 -->
+<div class="section">
+  <div class="sec-hdr open" onclick="tog(this)">1 &nbsp; Undercentral / Styrsystem <span class="arr">▲</span></div>
+  <div class="sec-body open">
+    <div class="check-item" style="flex-direction:column;align-items:flex-start"><div style="display:flex;align-items:flex-start;gap:12px;width:100%"><input type="checkbox" id="c1_1" onchange="upd()" style="margin-top:2px"><label for="c1_1" style="font-size:14px;line-height:1.5;flex:1"><span class="foto-tag">📷 Foto</span>Övergripande bild av undercentralen</label></div><div style="padding-left:34px;margin-top:6px"><input type="file" id="inp_c1_1" accept="image/*" capture="environment" onchange="fotoVald(this,'foto_c1_1','prev_c1_1','Övergripande bild av undercentralen')"><button class="foto-btn" id="foto_c1_1" onclick="taFoto('foto_c1_1','prev_c1_1','inp_c1_1')">📷 Ta foto</button><img id="prev_c1_1" class="foto-preview" style="display:none" src=""></div></div>
+    <div class="check-item" style="flex-direction:column;align-items:flex-start"><div style="display:flex;align-items:flex-start;gap:12px;width:100%"><input type="checkbox" id="c1_2" onchange="upd()" style="margin-top:2px"><label for="c1_2" style="font-size:14px;line-height:1.5;flex:1"><span class="foto-tag">📷 Foto</span>Värmekurva / brytpunkter – hela kurvan synlig</label></div><div style="padding-left:34px;margin-top:6px"><input type="file" id="inp_c1_2" accept="image/*" capture="environment" onchange="fotoVald(this,'foto_c1_2','prev_c1_2','Värmekurva / brytpunkter – hela kurvan synlig')"><button class="foto-btn" id="foto_c1_2" onclick="taFoto('foto_c1_2','prev_c1_2','inp_c1_2')">📷 Ta foto</button><img id="prev_c1_2" class="foto-preview" style="display:none" src=""></div></div>
+    <div class="check-item" style="flex-direction:column;align-items:flex-start"><div style="display:flex;align-items:flex-start;gap:12px;width:100%"><input type="checkbox" id="c1_3" onchange="upd()" style="margin-top:2px"><label for="c1_3" style="font-size:14px;line-height:1.5;flex:1"><span class="foto-tag">📷 Foto</span>Utegivare: placering + aktuellt värde på skärm</label></div><div style="padding-left:34px;margin-top:6px"><input type="file" id="inp_c1_3" accept="image/*" capture="environment" onchange="fotoVald(this,'foto_c1_3','prev_c1_3','Utegivare: placering + aktuellt värde på skärm')"><button class="foto-btn" id="foto_c1_3" onclick="taFoto('foto_c1_3','prev_c1_3','inp_c1_3')">📷 Ta foto</button><img id="prev_c1_3" class="foto-preview" style="display:none" src=""></div></div>
+    <div class="check-item" style="flex-direction:column;align-items:flex-start"><div style="display:flex;align-items:flex-start;gap:12px;width:100%"><input type="checkbox" id="c1_4" onchange="upd()" style="margin-top:2px"><label for="c1_4" style="font-size:14px;line-height:1.5;flex:1"><span class="foto-tag">📷 Foto</span>Nattsänkning / tidkanaler: tider + grader</label></div><div style="padding-left:34px;margin-top:6px"><input type="file" id="inp_c1_4" accept="image/*" capture="environment" onchange="fotoVald(this,'foto_c1_4','prev_c1_4','Nattsänkning / tidkanaler: tider + grader')"><button class="foto-btn" id="foto_c1_4" onclick="taFoto('foto_c1_4','prev_c1_4','inp_c1_4')">📷 Ta foto</button><img id="prev_c1_4" class="foto-preview" style="display:none" src=""></div></div>
+    <div class="check-item" style="flex-direction:column;align-items:flex-start"><div style="display:flex;align-items:flex-start;gap:12px;width:100%"><input type="checkbox" id="c1_5" onchange="upd()" style="margin-top:2px"><label for="c1_5" style="font-size:14px;line-height:1.5;flex:1"><span class="foto-tag">📷 Foto</span>Larmhistorik och aktiva larm</label></div><div style="padding-left:34px;margin-top:6px"><input type="file" id="inp_c1_5" accept="image/*" capture="environment" onchange="fotoVald(this,'foto_c1_5','prev_c1_5','Larmhistorik och aktiva larm')"><button class="foto-btn" id="foto_c1_5" onclick="taFoto('foto_c1_5','prev_c1_5','inp_c1_5')">📷 Ta foto</button><img id="prev_c1_5" class="foto-preview" style="display:none" src=""></div></div>
+    <div class="check-item"><input type="checkbox" id="c1_6" onchange="upd()"><label for="c1_6">Trendloggning? Om ja – be om export eller foto senaste veckan</label></div>
+  </div>
+</div>
+
+<!-- S2 -->
+<div class="section">
+  <div class="sec-hdr" onclick="tog(this)">2 &nbsp; Temperaturer och ΔT <span class="arr">▼</span></div>
+  <div class="sec-body">
+    <div class="mrow"><label>Primär fjärrvärme – framledning</label><input type="text" inputmode="decimal" id="v_pf" placeholder="–" oninput="calcDT()"><span class="unit">°C</span></div>
+    <div class="mrow"><label>Primär fjärrvärme – returledning</label><input type="text" inputmode="decimal" id="v_pr" placeholder="–" oninput="calcDT()"><span class="unit">°C</span></div>
+    <div class="dt-row">ΔT primär: <span class="dt-val" id="dt_prim">–</span></div>
+    <div class="mrow"><label>Utetemperatur vid mätning</label><input type="text" inputmode="decimal" id="v_ute" placeholder="–" oninput="calcDT()"><span class="unit">°C</span></div>
+    <div class="mrow"><label>Sekundär radiator – framledning</label><input type="text" inputmode="decimal" id="v_sf" placeholder="–" oninput="calcDT()"><span class="unit">°C</span></div>
+    <div class="mrow"><label>Sekundär radiator – returledning</label><input type="text" inputmode="decimal" id="v_sr" placeholder="–" oninput="calcDT()"><span class="unit">°C</span></div>
+    <div class="dt-row">ΔT sekundär (mål ≥ 15 °C): <span class="dt-val" id="dt_sek">–</span></div>
+    <div class="mrow"><label>Flöde (om visas på display)</label><input type="text" inputmode="decimal" id="v_flode" placeholder="–"><span class="unit"></span></div>
+  </div>
+</div>
+
+<!-- S3 -->
+<div class="section">
+  <div class="sec-hdr" onclick="tog(this)">3 &nbsp; Pumpar <span class="arr">▼</span></div>
+  <div class="sec-body">
+    <div class="check-item" style="flex-direction:column;align-items:flex-start"><div style="display:flex;align-items:flex-start;gap:12px;width:100%"><input type="checkbox" id="c3_1" onchange="upd()" style="margin-top:2px"><label for="c3_1" style="font-size:14px;line-height:1.5;flex:1"><span class="foto-tag">📷 Foto</span>Radiatorpump – driftläge (Auto / konstant tryck / proportionellt / fast)</label></div><div style="padding-left:34px;margin-top:6px"><input type="file" id="inp_c3_1" accept="image/*" capture="environment" onchange="fotoVald(this,'foto_c3_1','prev_c3_1','Radiatorpump – driftläge (Auto / konstant tryck / proportionellt / fast)')"><button class="foto-btn" id="foto_c3_1" onclick="taFoto('foto_c3_1','prev_c3_1','inp_c3_1')">📷 Ta foto</button><img id="prev_c3_1" class="foto-preview" style="display:none" src=""></div></div>
+    <div class="mrow"><label>Radiatorpump – setpoint</label><input type="text" inputmode="decimal" id="v_pump" placeholder="–"><span class="unit">kPa</span></div>
+    <div class="jnrow"><label>Pumpen på full hastighet hela tiden?</label><div class="jnbtns"><button class="jnbtn" onclick="jn(this,'j3_2','Ja')">Ja</button><button class="jnbtn" onclick="jn(this,'j3_2','Nej')">Nej</button></div><input type="hidden" id="j3_2"></div>
+    <div class="check-item" style="flex-direction:column;align-items:flex-start"><div style="display:flex;align-items:flex-start;gap:12px;width:100%"><input type="checkbox" id="c3_3" onchange="upd()" style="margin-top:2px"><label for="c3_3" style="font-size:14px;line-height:1.5;flex:1"><span class="foto-tag">📷 Foto</span>VVC-pump – driftläge + inställning</label></div><div style="padding-left:34px;margin-top:6px"><input type="file" id="inp_c3_3" accept="image/*" capture="environment" onchange="fotoVald(this,'foto_c3_3','prev_c3_3','VVC-pump – driftläge + inställning')"><button class="foto-btn" id="foto_c3_3" onclick="taFoto('foto_c3_3','prev_c3_3','inp_c3_3')">📷 Ta foto</button><img id="prev_c3_3" class="foto-preview" style="display:none" src=""></div></div>
+    <div class="jnrow"><label>VVC-pumpen dygnet runt (24/7)?</label><div class="jnbtns"><button class="jnbtn" onclick="jn(this,'j3_4','Ja')">Ja</button><button class="jnbtn" onclick="jn(this,'j3_4','Nej')">Nej</button></div><input type="hidden" id="j3_4"></div>
+  </div>
+</div>
+
+<!-- S4 -->
+<div class="section">
+  <div class="sec-hdr" onclick="tog(this)">4 &nbsp; Ventiler och Bypass <span class="arr">▼</span></div>
+  <div class="sec-body">
+    <div class="jnrow"><label>Finns bypass- eller differenstrycksventil?</label><div class="jnbtns"><button class="jnbtn" onclick="jn(this,'j4_1','Ja')">Ja</button><button class="jnbtn" onclick="jn(this,'j4_1','Nej')">Nej</button></div><input type="hidden" id="j4_1"></div>
+    <div class="check-item" style="flex-direction:column;align-items:flex-start"><div style="display:flex;align-items:flex-start;gap:12px;width:100%"><input type="checkbox" id="c4_2" onchange="upd()" style="margin-top:2px"><label for="c4_2" style="font-size:14px;line-height:1.5;flex:1"><span class="foto-tag">📷 Foto</span>Bypass / differenstrycksventil – läge + placering</label></div><div style="padding-left:34px;margin-top:6px"><input type="file" id="inp_c4_2" accept="image/*" capture="environment" onchange="fotoVald(this,'foto_c4_2','prev_c4_2','Bypass / differenstrycksventil – läge + placering')"><button class="foto-btn" id="foto_c4_2" onclick="taFoto('foto_c4_2','prev_c4_2','inp_c4_2')">📷 Ta foto</button><img id="prev_c4_2" class="foto-preview" style="display:none" src=""></div></div>
+    <div class="jnrow"><label>Rör sig styrventil / shunt om man ändrar börvärde?</label><div class="jnbtns"><button class="jnbtn" onclick="jn(this,'j4_3','Ja')">Ja</button><button class="jnbtn" onclick="jn(this,'j4_3','Nej')">Nej</button></div><input type="hidden" id="j4_3"></div>
+    <div class="jnrow"><label>Kortslutning? (rör varma där de borde vara kalla)</label><div class="jnbtns"><button class="jnbtn" onclick="jn(this,'j4_4','Ja')">Ja</button><button class="jnbtn" onclick="jn(this,'j4_4','Nej')">Nej</button></div><input type="hidden" id="j4_4"></div>
+    <div class="check-item"><input type="checkbox" id="c4_5" onchange="upd()"><label for="c4_5">Om kortslutning – Foto + notera var</label></div>
+  </div>
+</div>
+
+<!-- S5 -->
+<div class="section">
+  <div class="sec-hdr" onclick="tog(this)">5 &nbsp; Termostater och Radiatorer <span class="arr">▼</span></div>
+  <div class="sec-body">
+    <div class="mrow"><label>Uppskattad ålder på termostater</label><input type="text" inputmode="numeric" id="v_term_ar" placeholder="–"><span class="unit">år</span></div>
+    <div class="mrow"><label>Fabrikat / modell</label><input type="text" id="v_term_mod" placeholder="–" style="width:140px"><span class="unit"></span></div>
+    <div class="check-item" style="flex-direction:column;align-items:flex-start"><div style="display:flex;align-items:flex-start;gap:12px;width:100%"><input type="checkbox" id="c5_3" onchange="upd()" style="margin-top:2px"><label for="c5_3" style="font-size:14px;line-height:1.5;flex:1"><span class="foto-tag">📷 Foto</span>3–5 termostater i olika lägenheter / trapphus</label></div><div style="padding-left:34px;margin-top:6px"><input type="file" id="inp_c5_3" accept="image/*" capture="environment" onchange="fotoVald(this,'foto_c5_3','prev_c5_3','3–5 termostater i olika lägenheter / trapphus')"><button class="foto-btn" id="foto_c5_3" onclick="taFoto('foto_c5_3','prev_c5_3','inp_c5_3')">📷 Ta foto</button><img id="prev_c5_3" class="foto-preview" style="display:none" src=""></div></div>
+    <div class="jnrow"><label>Många termostater inställda på max?</label><div class="jnbtns"><button class="jnbtn" onclick="jn(this,'j5_4','Ja')">Ja</button><button class="jnbtn" onclick="jn(this,'j5_4','Nej')">Nej</button></div><input type="hidden" id="j5_4"></div>
+    <div class="jnrow"><label>Klagomål – för varmt?</label><div class="jnbtns"><button class="jnbtn" onclick="jn(this,'j5_5','Ja')">Ja</button><button class="jnbtn" onclick="jn(this,'j5_5','Nej')">Nej</button></div><input type="hidden" id="j5_5"></div>
+    <div class="jnrow"><label>Klagomål – för kallt?</label><div class="jnbtns"><button class="jnbtn" onclick="jn(this,'j5_6','Ja')">Ja</button><button class="jnbtn" onclick="jn(this,'j5_6','Nej')">Nej</button></div><input type="hidden" id="j5_6"></div>
+  </div>
+</div>
+
+<!-- S6 -->
+<div class="section">
+  <div class="sec-hdr" onclick="tog(this)">6 &nbsp; Varmvatten och VVC <span class="arr">▼</span></div>
+  <div class="sec-body">
+    <div class="mrow"><label>VV-temperatur ut (≥ 55 °C)</label><input type="text" inputmode="decimal" id="v_vv" placeholder="–" oninput="checkVV()"><span class="unit">°C</span></div>
+    <div id="vv-warn" class="warn-box">⚠️ Under legionellagränsen 55 °C!</div>
+    <div class="mrow"><label>VVC-retur (≥ 50 °C)</label><input type="text" inputmode="decimal" id="v_vvc" placeholder="–"><span class="unit">°C</span></div>
+    <div class="jnrow"><label>Boende behöver spola länge för varmvatten?</label><div class="jnbtns"><button class="jnbtn" onclick="jn(this,'j6_3','Ja')">Ja</button><button class="jnbtn" onclick="jn(this,'j6_3','Nej')">Nej</button></div><input type="hidden" id="j6_3"></div>
+    <div class="check-item" style="flex-direction:column;align-items:flex-start"><div style="display:flex;align-items:flex-start;gap:12px;width:100%"><input type="checkbox" id="c6_4" onchange="upd()" style="margin-top:2px"><label for="c6_4" style="font-size:14px;line-height:1.5;flex:1"><span class="foto-tag">📷 Foto</span>Varmvattenberedare / ackumulatortank om finns</label></div><div style="padding-left:34px;margin-top:6px"><input type="file" id="inp_c6_4" accept="image/*" capture="environment" onchange="fotoVald(this,'foto_c6_4','prev_c6_4','Varmvattenberedare / ackumulatortank om finns')"><button class="foto-btn" id="foto_c6_4" onclick="taFoto('foto_c6_4','prev_c6_4','inp_c6_4')">📷 Ta foto</button><img id="prev_c6_4" class="foto-preview" style="display:none" src=""></div></div>
+  </div>
+</div>
+
+<!-- S7 -->
+<div class="section">
+  <div class="sec-hdr" onclick="tog(this)">7 &nbsp; Ventilation <span class="arr">▼</span></div>
+  <div class="sec-body">
+    <div class="check-item" style="flex-direction:column;align-items:flex-start"><div style="display:flex;align-items:flex-start;gap:12px;width:100%"><input type="checkbox" id="c7_1" onchange="upd()" style="margin-top:2px"><label for="c7_1" style="font-size:14px;line-height:1.5;flex:1"><span class="foto-tag">📷 Foto</span>Aggregat / fläkt – fabrikat, modell, årsmodell</label></div><div style="padding-left:34px;margin-top:6px"><input type="file" id="inp_c7_1" accept="image/*" capture="environment" onchange="fotoVald(this,'foto_c7_1','prev_c7_1','Aggregat / fläkt – fabrikat, modell, årsmodell')"><button class="foto-btn" id="foto_c7_1" onclick="taFoto('foto_c7_1','prev_c7_1','inp_c7_1')">📷 Ta foto</button><img id="prev_c7_1" class="foto-preview" style="display:none" src=""></div></div>
+    <div class="check-item" style="flex-direction:column;align-items:flex-start"><div style="display:flex;align-items:flex-start;gap:12px;width:100%"><input type="checkbox" id="c7_2" onchange="upd()" style="margin-top:2px"><label for="c7_2" style="font-size:14px;line-height:1.5;flex:1"><span class="foto-tag">📷 Foto</span>Filterstatus – datum på filter eller filterlarm</label></div><div style="padding-left:34px;margin-top:6px"><input type="file" id="inp_c7_2" accept="image/*" capture="environment" onchange="fotoVald(this,'foto_c7_2','prev_c7_2','Filterstatus – datum på filter eller filterlarm')"><button class="foto-btn" id="foto_c7_2" onclick="taFoto('foto_c7_2','prev_c7_2','inp_c7_2')">📷 Ta foto</button><img id="prev_c7_2" class="foto-preview" style="display:none" src=""></div></div>
+    <div class="mrow"><label>Frånluftflöde (om mätbart)</label><input type="text" inputmode="decimal" id="v_flode_vent" placeholder="–"><span class="unit">l/s</span></div>
+    <div class="jnrow"><label>Bypass / sommardrift aktiv?</label><div class="jnbtns"><button class="jnbtn" onclick="jn(this,'j7_4','Ja')">Ja</button><button class="jnbtn" onclick="jn(this,'j7_4','Nej')">Nej</button></div><input type="hidden" id="j7_4"></div>
+    <div class="check-item"><input type="checkbox" id="c7_5" onchange="upd()"><label for="c7_5">Klagomål på drag, dålig luft eller buller – notera</label></div>
+    <div id="aterv-block" style="display:none">
+      <div class="info-box" style="margin-top:8px">Återvinningssystem – mät dessa temperaturer för att beräkna återvinningsgrad:</div>
+      <div class="mrow"><label>Frånluft IN (från lägenheterna)</label><input type="text" inputmode="decimal" id="v_fin" placeholder="–" oninput="calcAterv()"><span class="unit">°C</span></div>
+      <div class="mrow"><label>Frånluft UT (efter aggregat)</label><input type="text" inputmode="decimal" id="v_fut" placeholder="–" oninput="calcAterv()"><span class="unit">°C</span></div>
+      <div class="mrow"><label>Uteluft IN</label><input type="text" inputmode="decimal" id="v_uin" placeholder="–" oninput="calcAterv()"><span class="unit">°C</span></div>
+      <div class="mrow"><label>Tilluft UT till lägenheter</label><input type="text" inputmode="decimal" id="v_tut" placeholder="–"><span class="unit">°C</span></div>
+      <div class="dt-row">Återvinningsgrad: <span class="dt-val" id="aterv-val">–</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- S8 -->
+<div class="section">
+  <div class="sec-hdr" onclick="tog(this)">8 &nbsp; Garage och Övriga Energitjuvar <span class="arr">▼</span></div>
+  <div class="sec-body">
+    <div class="jnrow"><label>Värmefläkt / portvärme / golvvärme i garage?</label><div class="jnbtns"><button class="jnbtn" onclick="jn(this,'j8_1','Ja')">Ja</button><button class="jnbtn" onclick="jn(this,'j8_1','Nej')">Nej</button></div><input type="hidden" id="j8_1"></div>
+    <div class="jnrow"><label>Egen shunt / termostat för garage eller lokal?</label><div class="jnbtns"><button class="jnbtn" onclick="jn(this,'j8_2','Ja')">Ja</button><button class="jnbtn" onclick="jn(this,'j8_2','Nej')">Nej</button></div><input type="hidden" id="j8_2"></div>
+    <div class="jnrow"><label>Belysning som verkar stå på i onödan?</label><div class="jnbtns"><button class="jnbtn" onclick="jn(this,'j8_3','Ja')">Ja</button><button class="jnbtn" onclick="jn(this,'j8_3','Nej')">Nej</button></div><input type="hidden" id="j8_3"></div>
+    <div class="jnrow"><label>Otätheter vid portar, dörrar eller fönster?</label><div class="jnbtns"><button class="jnbtn" onclick="jn(this,'j8_4','Ja')">Ja</button><button class="jnbtn" onclick="jn(this,'j8_4','Nej')">Nej</button></div><input type="hidden" id="j8_4"></div>
+    <div class="check-item"><input type="checkbox" id="c8_5" onchange="upd()"><label for="c8_5">Övriga observationer – notera nedan</label></div>
+  </div>
+</div>
+
+<!-- S9 -->
+<div class="section">
+  <div class="sec-hdr" onclick="tog(this)">9 &nbsp; Elmätning <span class="arr">▼</span></div>
+  <div class="sec-body">
+    <div class="check-item" style="flex-direction:column;align-items:flex-start"><div style="display:flex;align-items:flex-start;gap:12px;width:100%"><input type="checkbox" id="c9_1" onchange="upd()" style="margin-top:2px"><label for="c9_1" style="font-size:14px;line-height:1.5;flex:1"><span class="foto-tag">📷 Foto</span>Elmätare – aktuellt värde + mätarnummer</label></div><div style="padding-left:34px;margin-top:6px"><input type="file" id="inp_c9_1" accept="image/*" capture="environment" onchange="fotoVald(this,'foto_c9_1','prev_c9_1','Elmätare – aktuellt värde + mätarnummer')"><button class="foto-btn" id="foto_c9_1" onclick="taFoto('foto_c9_1','prev_c9_1','inp_c9_1')">📷 Ta foto</button><img id="prev_c9_1" class="foto-preview" style="display:none" src=""></div></div>
+    <div class="mrow"><label>Effekt vid mätning</label><input type="text" inputmode="decimal" id="v_el" placeholder="–"><span class="unit">kW</span></div>
+    <div class="jnrow"><label>Undermätare för garage / lokal?</label><div class="jnbtns"><button class="jnbtn" onclick="jn(this,'j9_3','Ja')">Ja</button><button class="jnbtn" onclick="jn(this,'j9_3','Nej')">Nej</button></div><input type="hidden" id="j9_3"></div>
+  </div>
+</div>
+
+<!-- SAMMANFATTNING -->
+<div class="section">
+  <div class="sec-hdr" onclick="tog(this)">Sammanfattning på plats <span class="arr">▼</span></div>
+  <div class="sec-body">
+    <p style="font-size:13px;color:#555;padding:8px 0 4px">Misstänkt huvudorsak (välj en eller flera):</p>
+    <div class="orsak-wrap" id="orsak-btns">
+      <button class="orsak-btn" onclick="this.classList.toggle('vald')">Värmekurva</button>
+      <button class="orsak-btn" onclick="this.classList.toggle('vald')">Pumpflöde</button>
+      <button class="orsak-btn" onclick="this.classList.toggle('vald')">Bypass</button>
+      <button class="orsak-btn" onclick="this.classList.toggle('vald')">VVC</button>
+      <button class="orsak-btn" onclick="this.classList.toggle('vald')">Ventilation</button>
+      <button class="orsak-btn" onclick="this.classList.toggle('vald')">Radon</button>
+      <button class="orsak-btn" onclick="this.classList.toggle('vald')">Annat</button>
+    </div>
+    <p style="font-size:13px;color:#555;padding:4px 0 4px">3 snabbaste åtgärder:</p>
+    <textarea id="sum_atg" placeholder="1)&#10;2)&#10;3)" oninput="upd()"></textarea>
+    <p style="font-size:13px;color:#555;padding:4px 0 4px">Övriga kommentarer:</p>
+    <textarea id="sum_kom" placeholder="Anteckningar..." oninput="upd()"></textarea>
+  </div>
+</div>
+
+<button class="send-btn" onclick="skicka()">📧 Skicka rapport via e-post</button>
+
+<div class="bottom-bar">
+  <div class="stat"><div class="stat-n" id="s_check">0</div><div class="stat-l">checkboxar</div></div>
+  <div class="stat"><div class="stat-n" id="s_jn">0</div><div class="stat-l">ja/nej</div></div>
+  <div class="stat"><div class="stat-n" id="s_mat">0</div><div class="stat-l">mätvärden</div></div>
+  <div class="stat"><div class="stat-n" id="s_pct">0%</div><div class="stat-l">klart</div></div>
+</div>
+
+<script>
+
+var fotoCount = 0;
+function taFoto(btnId, previewId, inputId) {
+  document.getElementById(inputId).click();
+}
+function fotoVald(input, btnId, previewId, labelText) {
+  var file = input.files[0];
+  if (!file) return;
+  var btn = document.getElementById(btnId);
+  var preview = document.getElementById(previewId);
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    preview.src = e.target.result;
+    preview.style.display = 'block';
+    btn.innerHTML = '✓ Foto taget';
+    btn.classList.add('tagen');
+    fotoCount++;
+    document.getElementById('foto-counter').textContent = fotoCount + ' 📷';
+    document.getElementById('foto-counter').style.display = 'block';
+    upd();
+  };
+  reader.readAsDataURL(file);
+}
+
+var matIds=['v_pf','v_pr','v_ute','v_sf','v_sr','v_flode','v_pump','v_term_ar','v_vv','v_vvc','v_el','v_flode_vent','v_fin','v_fut','v_uin','v_tut'];
+
+function tog(hdr){
+  hdr.classList.toggle('open');
+  var arr=hdr.querySelector('.arr');
+  arr.textContent=hdr.classList.contains('open')?'▲':'▼';
+  hdr.nextElementSibling.classList.toggle('open');
+}
+
+function jn(btn,id,val){
+  var row=btn.closest('.jnrow');
+  row.querySelectorAll('.jnbtn').forEach(function(b){b.className='jnbtn';});
+  btn.classList.add(val==='Ja'?'ja':'nej');
+  document.getElementById(id).value=val;
+  upd();
+}
+
+function showVent(){
+  var v=document.getElementById('m_vent').value;
+  document.getElementById('aterv-block').style.display=(v==='FTX'||v==='F med FVP')?'block':'none';
+  document.getElementById('radon-warn').style.display=(v==='F'||v==='Självdrag')?'flex':'none';
+  upd();
+}
+
+function calcDT(){
+  var pf=parseFloat(document.getElementById('v_pf').value.replace(',','.'));
+  var pr=parseFloat(document.getElementById('v_pr').value.replace(',','.'));
+  var sf=parseFloat(document.getElementById('v_sf').value.replace(',','.'));
+  var sr=parseFloat(document.getElementById('v_sr').value.replace(',','.'));
+  var dp=document.getElementById('dt_prim');
+  var ds=document.getElementById('dt_sek');
+  if(!isNaN(pf)&&!isNaN(pr)){
+    var dt=Math.round((pf-pr)*10)/10;
+    dp.textContent=dt+' °C';
+    dp.className='dt-val '+(dt>=20?'dt-ok':'');
+  } else dp.textContent='–';
+  if(!isNaN(sf)&&!isNaN(sr)){
+    var dt2=Math.round((sf-sr)*10)/10;
+    ds.textContent=dt2+' °C';
+    ds.className='dt-val '+(dt2>=15?'dt-ok':'dt-bad');
+  } else ds.textContent='–';
+}
+
+function calcAterv(){
+  var fin=parseFloat(document.getElementById('v_fin').value.replace(',','.'));
+  var fut=parseFloat(document.getElementById('v_fut').value.replace(',','.'));
+  var uin=parseFloat(document.getElementById('v_uin').value.replace(',','.'));
+  var el=document.getElementById('aterv-val');
+  if(!isNaN(fin)&&!isNaN(fut)&&!isNaN(uin)&&(fin-uin)!==0){
+    var a=Math.round((fin-fut)/(fin-uin)*100);
+    el.textContent=a+'%';
+    el.className='dt-val '+(a>=60?'dt-ok':a>=40?'':'dt-bad');
+  } else el.textContent='–';
+}
+
+function checkVV(){
+  var v=parseFloat(document.getElementById('v_vv').value.replace(',','.'));
+  document.getElementById('vv-warn').style.display=(!isNaN(v)&&v<55)?'block':'none';
+}
+
+function upd(){
+  var cbs=document.querySelectorAll('input[type=checkbox]');
+  var checked=0; cbs.forEach(function(c){if(c.checked)checked++;});
+  var jns=document.querySelectorAll('input[type=hidden]');
+  var answered=0; jns.forEach(function(j){if(j.value)answered++;});
+  var mats=0;
+  matIds.forEach(function(id){var el=document.getElementById(id);if(el&&el.value.trim())mats++;});
+  var total=cbs.length+jns.length+matIds.length;
+  var done=checked+answered+mats;
+  var pct=total>0?Math.round(done/total*100):0;
+  document.getElementById('s_check').textContent=checked;
+  document.getElementById('s_jn').textContent=answered;
+  document.getElementById('s_mat').textContent=mats;
+  document.getElementById('s_pct').textContent=pct+'%';
+  document.getElementById('prog-fill').style.width=pct+'%';
+  document.getElementById('prog-label').textContent=done+' av '+total+' punkter klara';
+}
+
+function g(id){var el=document.getElementById(id);return el?el.value.trim():'–';}
+
+function skicka(){
+  var adress=g('m_adress')||'(ej angiven)';
+  var orsaker=[];
+  document.querySelectorAll('#orsak-btns .orsak-btn.vald').forEach(function(b){orsaker.push(b.textContent.trim());});
+
+  var rapport='FÄLTRAPPORT – ENERGIEFFEKTIVISERING\n';
+  rapport+='=====================================\n\n';
+  rapport+='FASTIGHET: '+adress+'\n';
+  rapport+='Ort: '+g('m_ort')+'\n';
+  rapport+='Datum: '+g('m_datum')+'\n';
+  rapport+='Tekniker: '+g('m_tekniker')+'\n';
+  rapport+='Telefon: '+g('m_telefon')+'\n';
+  rapport+='Byggnadsår: '+g('m_ar')+'\n';
+  rapport+='Lgh/yta: '+g('m_lgh')+'\n';
+  rapport+='Energiklass: '+g('m_eklass')+'\n';
+  rapport+='Värmesystem: '+g('m_varme')+'\n';
+  rapport+='Ventilation: '+g('m_vent')+'\n\n';
+  rapport+='MÄTVÄRDEN:\n';
+  rapport+='Primär framledning: '+g('v_pf')+' °C\n';
+  rapport+='Primär returledning: '+g('v_pr')+' °C\n';
+  rapport+='ΔT primär: '+document.getElementById('dt_prim').textContent+'\n';
+  rapport+='Utetemperatur: '+g('v_ute')+' °C\n';
+  rapport+='Sekundär framledning: '+g('v_sf')+' °C\n';
+  rapport+='Sekundär returledning: '+g('v_sr')+' °C\n';
+  rapport+='ΔT sekundär: '+document.getElementById('dt_sek').textContent+'\n';
+  rapport+='Flöde: '+g('v_flode')+'\n';
+  rapport+='Radiatorpump setpoint: '+g('v_pump')+' kPa\n';
+  rapport+='VV-temp ut: '+g('v_vv')+' °C\n';
+  rapport+='VVC-retur: '+g('v_vvc')+' °C\n';
+  rapport+='Fastighetsel effekt: '+g('v_el')+' kW\n';
+  rapport+='Frånluftflöde: '+g('v_flode_vent')+' l/s\n';
+
+  var ab=document.getElementById('aterv-block');
+  if(ab&&ab.style.display!=='none'){
+    rapport+='\nÅTERVINNING:\n';
+    rapport+='Frånluft IN: '+g('v_fin')+' °C\n';
+    rapport+='Frånluft UT: '+g('v_fut')+' °C\n';
+    rapport+='Uteluft: '+g('v_uin')+' °C\n';
+    rapport+='Tilluft UT: '+g('v_tut')+' °C\n';
+    rapport+='Återvinningsgrad: '+document.getElementById('aterv-val').textContent+'\n';
+  }
+
+  var checks=[];
+  document.querySelectorAll('input[type=checkbox]:checked').forEach(function(c){
+    var lbl=document.querySelector('label[for="'+c.id+'"]');
+    if(lbl) checks.push(lbl.innerText.replace(/\s+/g,' ').trim());
+  });
+  if(checks.length){rapport+='\nUTFÖRDA KONTROLLER:\n';checks.forEach(function(c){rapport+='✓ '+c+'\n';});}
+
+  rapport+='\nSAMMANFATTNING:\n';
+  rapport+='Misstänkt orsak: '+(orsaker.length?orsaker.join(', '):'(ej valt)')+'\n';
+  rapport+='Åtgärder: '+g('sum_atg')+'\n';
+  rapport+='Kommentarer: '+g('sum_kom')+'\n';
+
+  var subject='Fältrapport – '+adress+' – '+g('m_datum');
+  var body=encodeURIComponent(rapport);
+  window.location.href='mailto:?subject='+encodeURIComponent(subject)+'&body='+body;
+}
+
+upd();
+</script>
+</body>
+</html>
